@@ -15,7 +15,7 @@ import java.util.TimerTask;
 public class Dashboard extends Application {
 
     private static final int SENSOR_REFRESH_DELAY = 500;
-    private static final int SENSOR_REFRESH_INTERVAL = 50;
+    private static final int SENSOR_REFRESH_INTERVAL = 20;
     private SensorSet sensorSet = new SensorSet();
 
     private Timer timer = new Timer();

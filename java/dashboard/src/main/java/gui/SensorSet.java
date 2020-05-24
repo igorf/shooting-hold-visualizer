@@ -6,60 +6,61 @@ import eu.hansolo.medusa.Gauge;
 import eu.hansolo.medusa.GaugeBuilder;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.decimal4j.util.DoubleRounder;
 
 @Slf4j
 public class SensorSet {
-    private static final int PRECISION_LEVEL = 2;
+    private static final int PRECISION_LEVEL = 6;
+    private static final double PITCH_THRESHOLD = 0.045;
+    private static final double YAW_THRESHOLD = 0.045;
 
     @Getter private GridPane pane;
-    private Gauge ax1;
-    private Gauge ay1;
-    private Gauge az2;
-    private Gauge az1;
-    private Gauge ax2;
-    private Gauge ay2;
-    private Gauge gx1;
-    private Gauge gy1;
-    private Gauge gz2;
-    private Gauge gz1;
-    private Gauge gx2;
-    private Gauge gy2;
+    private Gauge pitch;
+    private Gauge yaw;
+    private Gauge mistake;
+    private Gauge gyroX;
+    private Gauge gyroY;
+    private Gauge gyroZ;
+
+    private Gauge pitchError;
+    private Gauge yawError;
+    private Label wrestError;
 
     public void init() {
-        GaugeBuilder builder = GaugeBuilder.create().skinType(Gauge.SkinType.SIMPLE);
-        ax1 = builder.decimals(3).maxValue(10).minValue(-10).unit("").build();
-        ay1 = builder.decimals(3).maxValue(10).minValue(-10).unit("").build();
-        az2 = builder.decimals(3).maxValue(10).minValue(-10).unit("").build();
-        az1 = builder.decimals(3).maxValue(10).minValue(-10).unit("").build();
-        ax2 = builder.decimals(3).maxValue(10).minValue(-10).unit("").build();
-        ay2 = builder.decimals(3).maxValue(10).minValue(-10).unit("").build();
-        gx1 = builder.decimals(6).maxValue(10).minValue(-10).unit("").build();
-        gy1 = builder.decimals(6).maxValue(10).minValue(-10).unit("").build();
-        gz2 = builder.decimals(6).maxValue(10).minValue(-10).unit("").build();
-        gz1 = builder.decimals(6).maxValue(10).minValue(-10).unit("").build();
-        gx2 = builder.decimals(6).maxValue(10).minValue(-10).unit("").build();
-        gy2 = builder.decimals(6).maxValue(10).minValue(-10).unit("").build();
+        GaugeBuilder builder = GaugeBuilder.create().skinType(Gauge.SkinType.SLIM);
+        pitch   = builder.decimals(3).maxValue(10).minValue(-10).unit("").build();
+        yaw     = builder.decimals(3).maxValue(10).minValue(-10).unit("").build();
+        mistake = builder.decimals(3).maxValue(10).minValue(-10).unit("").build();
+        gyroX   = builder.decimals(6).maxValue(10).minValue(-10).unit("").build();
+        gyroY   = builder.decimals(6).maxValue(10).minValue(-10).unit("").build();
+        gyroZ   = builder.decimals(6).maxValue(10).minValue(-10).unit("").build();
 
-        VBox ax1box = getTopicBox("Accel X1", Color.rgb(77, 208, 225),  ax1);
-        VBox ay1box = getTopicBox("Accel Y1", Color.rgb(255, 183, 77),  ay1);
-        VBox az1box = getTopicBox("Accel Z1", Color.rgb(129, 199, 132), az1);
-        VBox ax2box = getTopicBox("Accel X2", Color.rgb(149, 117, 205), ax2);
-        VBox ay2box = getTopicBox("Accel Y2", Color.rgb(186, 104, 200), ay2);
-        VBox az2box = getTopicBox("Accel Z2", Color.rgb(229, 115, 115), az2);
+        pitchError      = builder.decimals(6).maxValue(10).minValue(0).unit("").build();
+        yawError        = builder.decimals(6).maxValue(10).minValue(0).unit("").build();
+        wrestError = new Label();
+        wrestError.setTextFill(Color.web("#FF5555"));
+        wrestError.setFont(new Font("Courier", 30));
 
-        VBox gx1box = getTopicBox("Gyro X1", Color.rgb(77, 208, 225),  gx1);
-        VBox gy1box = getTopicBox("Gyro Y1", Color.rgb(255, 183, 77),  gy1);
-        VBox gz1box = getTopicBox("Gyro Z1", Color.rgb(129, 199, 132), gz1);
-        VBox gx2box = getTopicBox("Gyro X2", Color.rgb(149, 117, 205), gx2);
-        VBox gy2box = getTopicBox("Gyro Y2", Color.rgb(186, 104, 200), gy2);
-        VBox gz2box = getTopicBox("Gyro Z2", Color.rgb(229, 115, 115), gz2);
+
+        VBox pitchBox           = getTopicBox("Тангаж", Color.rgb(77, 208, 225), pitch);
+        VBox yawBox             = getTopicBox("Рыскание", Color.rgb(255, 183, 77), yaw);
+        VBox wrestMistakeBox    = getTopicBox("Суммарное отклонение", Color.rgb(229, 115, 115), mistake);
+
+        VBox gyroZBox = getTopicBox("Абсолютный тангаж",    Color.rgb(77, 208, 225), gyroZ);
+        VBox gyroYBox = getTopicBox("Абсолютное рыскание",  Color.rgb(255, 183, 77), gyroY);
+        VBox gyroXBox = getTopicBox("Абсолютный крен",      Color.rgb(110, 199, 99), gyroX);
+
+        VBox pitchErrorBox  = getTopicBox("Запястье, тангаж",   Color.rgb(255, 90, 99), pitchError);
+        VBox yawErrorBox    = getTopicBox("Запястье, рыскание", Color.rgb(255, 90, 99), yawError);
+        VBox wrestErrorBox  = getBox("Запястье, итого",    Color.rgb(255, 90, 99), wrestError);
 
         pane = new GridPane();
         pane.setPadding(new Insets(20));
@@ -67,24 +68,28 @@ public class SensorSet {
         pane.setVgap(15);
         pane.setBackground(new Background(new BackgroundFill(Color.rgb(39, 44, 50), CornerRadii.EMPTY, Insets.EMPTY)));
 
-        pane.add(ax1box, 0, 0);
-        pane.add(ay1box, 0, 1);
-        pane.add(az1box, 0, 2);
+        pane.add(pitchBox,          0, 0);
+        pane.add(yawBox,            0, 1);
+        pane.add(wrestMistakeBox,   0, 2);
 
-        pane.add(ax2box, 1, 0);
-        pane.add(ay2box, 1, 1);
-        pane.add(az2box, 1, 2);
+        pane.add(gyroZBox,          1, 0);
+        pane.add(gyroYBox,          1, 1);
+        pane.add(gyroXBox,          1, 2);
 
-        pane.add(gx1box, 2, 0);
-        pane.add(gy1box, 2, 1);
-        pane.add(gz1box, 2, 2);
-
-        pane.add(gx2box, 3, 0);
-        pane.add(gy2box, 3, 1);
-        pane.add(gz2box, 3, 2);
+        pane.add(pitchErrorBox,     2, 0);
+        pane.add(yawErrorBox,       2, 1);
+        pane.add(wrestErrorBox,     2, 2);
     }
 
     private VBox getTopicBox(final String TEXT, final Color color, final Gauge gauge) {
+        gauge.setBarColor(color);
+        gauge.setBarBackgroundColor(Color.rgb(39, 44, 50));
+        gauge.setAnimated(false);
+
+        return getBox(TEXT, color, gauge);
+    }
+
+    private VBox getBox(final String TEXT, final Color color, final Control gauge) {
         Rectangle bar = new Rectangle(200, 3);
         bar.setArcWidth(6);
         bar.setArcHeight(6);
@@ -95,10 +100,6 @@ public class SensorSet {
         label.setAlignment(Pos.CENTER);
         label.setPadding(new Insets(0, 0, 10, 0));
 
-        gauge.setBarColor(color);
-        gauge.setBarBackgroundColor(Color.rgb(39, 44, 50));
-        gauge.setAnimated(true);
-
         VBox vBox = new VBox(bar, label, gauge);
         vBox.setSpacing(3);
         vBox.setAlignment(Pos.CENTER);
@@ -106,23 +107,32 @@ public class SensorSet {
     }
 
     public void refresh() {
-        AcceleratorData data = DataManager.getInstance().getDataContainer().getAndCleanAVG();
+        AcceleratorData data = DataManager.getInstance().getDataContainer().getAndCleanAvgPeak();
+        AcceleratorData avg = DataManager.getInstance().getDataContainer().getAverage();
+        AcceleratorData diff = DataManager.getInstance().getDataContainer().getAvgDiff();
+
         if (data != null) {
-            ax1.setValue(DoubleRounder.round(data.getAcceleratorX1(), PRECISION_LEVEL));
-            ay1.setValue(DoubleRounder.round(data.getAcceleratorY1(), PRECISION_LEVEL));
-            az1.setValue(DoubleRounder.round(data.getAcceleratorZ1(), PRECISION_LEVEL));
+            pitch.setValue(DoubleRounder.round(diff.getDiffAY(),     PRECISION_LEVEL));
+            yaw.setValue(DoubleRounder.round(diff.getDiffAZ(),       PRECISION_LEVEL));
+            mistake.setValue(DoubleRounder.round(
+                    Math.abs(diff.getDiffAZ()) + Math.abs(diff.getDiffAY()),
+                    PRECISION_LEVEL));
 
-            ax2.setValue(DoubleRounder.round(data.getAcceleratorX2(), PRECISION_LEVEL));
-            ay2.setValue(DoubleRounder.round(data.getAcceleratorY2(), PRECISION_LEVEL));
-            az2.setValue(DoubleRounder.round(data.getAcceleratorZ2(), PRECISION_LEVEL));
+            gyroX.setValue(DoubleRounder.round(data.avgGyroX(), PRECISION_LEVEL));
+            gyroY.setValue(DoubleRounder.round(data.avgGyroY(), PRECISION_LEVEL));
+            gyroZ.setValue(DoubleRounder.round(data.avgGyroZ(), PRECISION_LEVEL));
 
-            gx1.setValue(DoubleRounder.round(data.getGyroX1(), PRECISION_LEVEL));
-            gy1.setValue(DoubleRounder.round(data.getGyroY1(), PRECISION_LEVEL));
-            gz1.setValue(DoubleRounder.round(data.getGyroZ1(), PRECISION_LEVEL));
+            if (Math.abs(diff.getDiffAY()) >= PITCH_THRESHOLD) {
+                wrestError.setText("Ошибка!");
+            } else {
+                wrestError.setText("");
+            }
 
-            gx2.setValue(DoubleRounder.round(data.getGyroX2(), PRECISION_LEVEL));
-            gy2.setValue(DoubleRounder.round(data.getGyroY2(), PRECISION_LEVEL));
-            gz2.setValue(DoubleRounder.round(data.getGyroZ2(), PRECISION_LEVEL));
+            double pitchErrorValue = (Math.abs(diff.getDiffAY()) > PITCH_THRESHOLD) ? diff.getDiffAY() : 0;
+            double yawErrorValue = (Math.abs(diff.getDiffAZ()) > YAW_THRESHOLD) ? diff.getDiffAZ() : 0;
+
+            pitchError.setValue(pitchErrorValue);
+            yawError.setValue(yawErrorValue);
         }
     }
 }

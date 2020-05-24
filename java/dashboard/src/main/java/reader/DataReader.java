@@ -10,8 +10,8 @@ import java.util.List;
 
 @Slf4j
 public class DataReader {
-    private static final int CONVERT_DELAY = 150;
-    private static final int READ_DELAY = 100;
+    private static final int CONVERT_DELAY = 50;
+    private static final int READ_DELAY = 30;
 
     private static DataReader INSTANCE;
 

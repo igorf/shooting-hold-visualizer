@@ -1,11 +1,15 @@
 package data.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class AcceleratorData {
     @JsonAlias("ax1") double acceleratorX1;
     @JsonAlias("ay1") double acceleratorY1;
