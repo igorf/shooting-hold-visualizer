@@ -1,13 +1,13 @@
 package data.helper;
 
-import data.model.AcceleratorData;
+import data.model.AccelerometerData;
 
 import java.util.Collection;
 
 public class DataHelper {
-    public static AcceleratorData average(Collection<AcceleratorData> data) {
+    public static AccelerometerData average(Collection<AccelerometerData> data) {
         int size = data.size();
-        AcceleratorData result = sum(data);
+        AccelerometerData result = sum(data);
 
         result.setAcceleratorX1(result.getAcceleratorX1() / size);
         result.setAcceleratorY1(result.getAcceleratorY1() / size);
@@ -28,12 +28,12 @@ public class DataHelper {
         return result;
     }
 
-    public static AcceleratorData sum(Collection<AcceleratorData> data) {
+    public static AccelerometerData sum(Collection<AccelerometerData> data) {
         int size = data.size();
-        AcceleratorData result = new AcceleratorData();
+        AccelerometerData result = new AccelerometerData();
 
         //Ужус-ужас, прилетевший на крыльях в 3 часа ночи. А не буду я его переписывать =)
-        for (AcceleratorData d: data) {
+        for (AccelerometerData d: data) {
             result.setAcceleratorX1(result.getAcceleratorX1() + d.getAcceleratorX1());
             result.setAcceleratorY1(result.getAcceleratorY1() + d.getAcceleratorY1());
             result.setAcceleratorZ1(result.getAcceleratorZ1() + d.getAcceleratorZ1());
@@ -54,9 +54,9 @@ public class DataHelper {
         return result;
     }
 
-    public static AcceleratorData diff(AcceleratorData first, AcceleratorData second) {
+    public static AccelerometerData diff(AccelerometerData first, AccelerometerData second) {
         if (first == null && second == null) {
-            return new AcceleratorData();
+            return new AccelerometerData();
         }
 
         if (second == null) {
@@ -67,7 +67,7 @@ public class DataHelper {
             return second;
         }
 
-        return new AcceleratorData(
+        return new AccelerometerData(
                 first.getAcceleratorX1() - second.getAcceleratorX1(),
                 first.getAcceleratorY1() - second.getAcceleratorY1(),
                 first.getAcceleratorZ1() - second.getAcceleratorZ1(),
@@ -82,4 +82,29 @@ public class DataHelper {
                 first.getGyroZ2() - second.getGyroZ2()
         );
     }
+
+    public static double dx(AccelerometerData data) {
+        return data.getAcceleratorX2() - data.getAcceleratorX1();
+    }
+
+    public static double dy(AccelerometerData data) {
+        return data.getAcceleratorY2() - data.getAcceleratorY1();
+    }
+
+    public static double dz(AccelerometerData data) {
+        return data.getAcceleratorZ2() - data.getAcceleratorZ1();
+    }
+
+    public static double dxAbs(AccelerometerData data) {
+        return Math.abs(dx(data));
+    }
+
+    public static double dyAbs(AccelerometerData data) {
+        return Math.abs(dy(data));
+    }
+
+    public static double dzAbs(AccelerometerData data) {
+        return Math.abs(dz(data));
+    }
+
 }

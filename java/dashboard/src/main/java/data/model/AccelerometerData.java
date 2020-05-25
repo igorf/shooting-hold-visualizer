@@ -10,7 +10,7 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class AcceleratorData {
+public class AccelerometerData {
     @JsonAlias("ax1") double acceleratorX1;
     @JsonAlias("ay1") double acceleratorY1;
     @JsonAlias("az1") double acceleratorZ1;
