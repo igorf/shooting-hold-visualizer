@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Dashboard extends Application {
     private static final int SENSOR_REFRESH_DELAY = 500;
-    private static final int SENSOR_REFRESH_INTERVAL = 20;
+    private static final int SENSOR_REFRESH_INTERVAL = 15;
 
     private SensorSet sensorSet = new SensorSet();
 

@@ -20,8 +20,8 @@ import org.decimal4j.util.DoubleRounder;
 @Slf4j
 public class SensorSet {
     private static final int PRECISION_LEVEL = 6;
-    private static final double PITCH_THRESHOLD = 0.055;
-    private static final double YAW_THRESHOLD = 0.025;
+    private static final double PITCH_THRESHOLD = 0.08;
+    private static final double YAW_THRESHOLD = 0.08;
 
     @Getter private GridPane pane;
     private Gauge pitch;
@@ -108,8 +108,9 @@ public class SensorSet {
     }
 
     public void refresh() {
-        AccelerometerData data = DataManager.getInstance().getDataContainer().getAndCleanAvgPeak();
-        AccelerometerData diff = DataManager.getInstance().getDataContainer().getAvgDiff();
+        AccelerometerData data = DataManager.getInstance().getDataContainer().getPeak();
+        AccelerometerData avg = DataManager.getInstance().getDataContainer().getAverage();
+        AccelerometerData diff = DataHelper.diff(data, avg);
 
         if (data != null) {
             pitch.setValue(DoubleRounder.round(diff.getDiffAY(),     PRECISION_LEVEL));
@@ -122,23 +123,20 @@ public class SensorSet {
             gyroY.setValue(DoubleRounder.round(data.avgGyroY(), PRECISION_LEVEL));
             gyroZ.setValue(DoubleRounder.round(data.avgGyroZ(), PRECISION_LEVEL));
 
+            double pitchErrorAbsValue = data.getDiffAY() - avg.getDiffAY();
+            double yawErrorAbsValue = data.getDiffAZ() - avg.getDiffAZ();
             double pitchErrorValue = (
-                    Math.abs(DataHelper.dyAbs(diff)) > PITCH_THRESHOLD)
-                    ? DataHelper.dyAbs(diff)
+                    Math.abs(pitchErrorAbsValue) > PITCH_THRESHOLD)
+                    ? Math.abs(pitchErrorAbsValue)
                     : 0;
             double yawErrorValue = (
-                    Math.abs(DataHelper.dzAbs(diff)) > YAW_THRESHOLD)
-                    ? DataHelper.dzAbs(diff)
+                    Math.abs(yawErrorAbsValue) > YAW_THRESHOLD)
+                    ? Math.abs(yawErrorAbsValue)
                     : 0;
 
             pitchError.setValue(pitchErrorValue);
             yawError.setValue(yawErrorValue);
-
-            if (pitchErrorValue + yawErrorValue > 0) {
-                wrestError.setText("Ошибка!");
-            } else {
-                wrestError.setText("");
-            }
+            wrestError.setText(pitchErrorValue + yawErrorValue > 0 ? "Ошибка" : "");
         }
     }
 }
